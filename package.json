@@ -1,0 +1,30 @@
+{
+  "name": "webxr-point-cloud",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/webxr": "^0.5.21",
+    "esbuild": "^0.25.2",
+    "fflate": "^0.8.2",
+    "file-saver": "^2.0.5",
+    "meshoptimizer": "^0.18.1",
+    "nanoid": "^3.3.11",
+    "picocolors": "^1.1.1",
+    "postcss": "^8.5.3",
+    "rollup": "^4.40.0",
+    "source-map-js": "^1.2.1",
+    "three": "^0.175.0"
+  },
+  "devDependencies": {
+    "@types/three": "^0.175.0",
+    "typescript": "^5.8.3",
+    "vite": "^6.2.6"
+  },
+  "description": ""
+}
