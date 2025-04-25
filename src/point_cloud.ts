@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { WorkerManager } from './worker_manager';
 
 class PointCloudGenerator {
     private gl: WebGL2RenderingContext | WebGLRenderingContext;
@@ -6,22 +7,24 @@ class PointCloudGenerator {
 
     private yStart: number = 0;
     private xStart: number = 0;
-    private yInc: number = 10;
-    private xInc: number = 10;
+    private yInc: number = 5;
+    private xInc: number = 5;
 
-    constructor(gl: WebGL2RenderingContext | WebGLRenderingContext) {
+    private workerManager: WorkerManager;
+
+    private scene: THREE.Scene;
+
+    constructor(gl: WebGL2RenderingContext | WebGLRenderingContext, scene: THREE.Scene) {
         this.gl = gl;
         this.tempFramebuffer = this.gl.createFramebuffer();
+
+        this.scene = scene;
+
+        this.workerManager = new WorkerManager();
     }
 
     public createPointCloudData(depthInfo: XRCPUDepthInformation, view: XRView, baseLayer: XRWebGLLayer,
-        webXRTexture: WebGLTexture, cameraWidth: number, cameraHeight: number)
-    : {positions: Float32Array, colors: Float32Array} {
-        const positions: number[] = [];
-        const colors: number[] = [];
-        const width = depthInfo.width;
-        const height = depthInfo.height;
-        
+        webXRTexture: WebGLTexture, cameraWidth: number, cameraHeight: number) {        
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.tempFramebuffer);
         this.gl.framebufferTexture2D(
             this.gl.FRAMEBUFFER, 
@@ -35,59 +38,79 @@ class PointCloudGenerator {
         this.gl.readPixels(0, 0, cameraWidth, cameraHeight, this.gl.RGBA, this.gl.UNSIGNED_BYTE, pixels);
         // Clean up
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, baseLayer?.framebuffer as WebGLFramebuffer);
+
+        const cfg: WorkerConfig = {
+            depthBuffer: new Uint8Array(depthInfo.data),
+            width: depthInfo.width,
+            height: depthInfo.height,
+            rawValueToMeters: depthInfo.rawValueToMeters,
+            normDepthBufferFromNormView: depthInfo.normDepthBufferFromNormView.matrix,
+            cameraWidth,
+            cameraHeight,
+            pixels, // from readPixels
+            projectionMatrix: view.projectionMatrix,
+            viewMatrix: view.transform.matrix,
+            xStart: this.xStart,
+            yStart: this.yStart,
+            xInc: this.xInc,
+            yInc: this.yInc,
+        };
         
-        // Create inverse projection matrix
-        const projMatrix = new THREE.Matrix4().fromArray(view.projectionMatrix);
-        const invProjMatrix = new THREE.Matrix4().copy(projMatrix).invert();
-        const viewMatrix = new THREE.Matrix4().fromArray(view.transform.matrix);
-
-        for (let y = this.yStart; y < height; y += this.yInc) { // Reduced density for performance
-            for (let x = this.xStart; x < width; x += this.xInc) {
-                const u = x / width;
-                const v = y / height;
-
-                const depth = depthInfo.getDepthInMeters(u, v);
-                if (!depth || isNaN(depth)) continue;
-
-                // Calculate corresponding camera pixel coordinates
-                const cameraX = Math.floor(u * cameraWidth);
-                const cameraY = Math.floor((v) * cameraHeight); // Flip Y
-                const pixelIndex = (cameraY * cameraWidth + cameraX) * 4;
-                const r = pixels[pixelIndex] / 255;
-                const g = pixels[pixelIndex + 1] / 255;
-                const b = pixels[pixelIndex + 2] / 255;
-
-                // Normalized device coordinates (NDC)
-                const ndcX = (x / width) * 2 - 1;
-                const ndcY = (y / height) * 2 - 1;
-
-                // Clip coordinates
-                const clipCoord = new THREE.Vector4(ndcX, ndcY, -1, 1);
-
-                // Eye (camera) space
-                const eyeCoord = clipCoord.applyMatrix4(invProjMatrix);
-                const eyePos = new THREE.Vector3(
-                    eyeCoord.x * depth,
-                    eyeCoord.y * depth,
-                    -depth
-                );
-
-                // World space
-                const worldPos = eyePos.applyMatrix4(viewMatrix);
-                
-                positions.push(worldPos.x, worldPos.y, worldPos.z);
-                colors.push(r, g, b);
-            }
+        const wrapper = this.workerManager.getIdleWorker();
+        if(wrapper){
+            wrapper.busy = true;
+            const { worker } = wrapper;
+        
+            const onMessage = (e: MessageEvent<{ positions: Float32Array; colors: Float32Array }>) => {
+                wrapper.busy = false;
+                worker.removeEventListener('message', onMessage); // Prevent stacking
+                this.addPointCloud(e.data);
+            };
+        
+            worker.addEventListener('message', onMessage);
+            worker.postMessage(cfg, [cfg.depthBuffer.buffer, cfg.pixels.buffer]);
+        
+        }else{
+            console.warn('All workers are busy. Consider queuing this task.');
         }
 
         this.xStart = (this.xStart + Math.floor(Math.random() * this.xInc)) % (this.xInc + 1);
         this.yStart = (this.yStart + Math.floor(Math.random() * this.yInc)) % (this.yInc + 1);
+    }
 
-        return {
-            positions: new Float32Array(positions),
-            colors: new Float32Array(colors)
-        };
+    private addPointCloud(pointCloudData: {positions: Float32Array, colors: Float32Array}) {
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.BufferAttribute(pointCloudData.positions, 3));
+        geometry.setAttribute('color', new THREE.BufferAttribute(pointCloudData.colors, 3));
+    
+        const material = new THREE.PointsMaterial({
+            size: 0.01,
+            vertexColors: true, // Enable vertex coloring
+            sizeAttenuation: true
+        });
+    
+        const pointCloud = new THREE.Points(geometry, material);
+        this.scene.add(pointCloud);
     }
 };
 
+interface WorkerConfig {
+    depthBuffer: Uint8Array;
+    width: number;
+    height: number;
+    rawValueToMeters: number;
+    normDepthBufferFromNormView: Float32Array;
+    cameraWidth: number;
+    cameraHeight: number;
+    pixels: Uint8Array;
+    projectionMatrix: Float32Array;
+    viewMatrix: Float32Array;
+    xStart: number;
+    yStart: number;
+    xInc: number;
+    yInc: number;
+}
+
 export default PointCloudGenerator;
+export {WorkerConfig};
+
