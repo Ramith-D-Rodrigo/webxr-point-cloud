@@ -9,6 +9,7 @@ class Button {
         const renderer = app.getRenderer();
         const container = document.querySelector("#btn-container") as HTMLElement;
         const gltfBtn = document.querySelector("#gltf") as HTMLElement;
+        const messageDiv = document.querySelector("#main-content") as HTMLElement;
 
         function showStartAR( /*device*/ ) {
             let currentSession: XRSession | null = null;
@@ -28,7 +29,8 @@ class Button {
                 currentSession = session;
                 container.classList.remove('not-session');
                 container.classList.add('in-session');
-                gltfBtn.classList.remove('btn-hidden');
+                gltfBtn.classList.remove('hidden');
+                messageDiv.classList.add('hidden');
             }
 
             function onSessionEnded( /*event*/ ) {
@@ -38,7 +40,8 @@ class Button {
                 currentSession = null;
                 container.classList.remove('in-session');
                 container.classList.add('not-session');
-                gltfBtn.classList.add('btn-hidden');
+                gltfBtn.classList.add('hidden');
+                messageDiv.classList.remove('hidden');
             }
 
             button.style.cursor = 'pointer';

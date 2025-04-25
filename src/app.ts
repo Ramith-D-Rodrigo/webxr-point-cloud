@@ -98,7 +98,7 @@ class App {
         setTimeout(() => {
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
-        }, 100);
+        }, 1000);
     }
 
     private async animate(timestamp: DOMHighResTimeStamp, frame: XRFrame) {
