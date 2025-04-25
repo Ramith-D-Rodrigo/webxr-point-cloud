@@ -1,8 +1,12 @@
 body {
     margin: 0;
     overflow: hidden;
+    font-family: Arial, sans-serif;
+    background-color: #111;
+    color: white;
 }
 
+/* Button base style */
 .btn {
     border: none;
     color: white;
@@ -10,50 +14,66 @@ body {
     font-size: 1em;
     border-radius: 8px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease, transform 0.2s ease;
     margin: 0.2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
+.btn:hover {
+    transform: scale(1.05);
+}
+
+/* AR and GLTF button colors */
 .ar-button {
     background-color: #28a745;
-    
+}
+.ar-button:hover {
+    background-color: #1e7e34;
 }
 
 .gltf-button {
     background-color: #1d48a5;
 }
-
-.ar-button:hover {
-    background-color: #1e7e34;
-}
-
 .gltf-button:hover {
     background-color: #0d2a69;
 }
 
-.btn-hidden {
+/* Hidden button */
+.hidden {
     display: none;
 }
 
-#btn-container{
+/* Button container */
+#btn-container {
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: center;
 }
 
-.not-session{
+/* Overlay */
+#overlay {
+    position: absolute;
+    top: 1rem;
+    background-color: rgba(0, 0, 0, 0.85);
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+    max-width: 90%;
+    text-align: center;
+}
+
+/* Overlay message */
+#main-content {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+}
+
+/* Session toggles */
+.not-session {
     margin: 1rem;
 }
 
-.in-session{
+.in-session {
     margin-top: 6rem;
-}
-
-#overlay{
-    position:absolute;
-    top: 1rem;
-    background-color: black;
-    text-align: center;
-    color:white;
 }
