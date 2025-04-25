@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import {ARButton} from 'three/examples/jsm/webxr/ARButton';
 import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter';
 import PointCloudGenerator from './point_cloud';
+import { Button } from './button';
 
 class App {
     private scene: THREE.Scene;
@@ -9,11 +10,17 @@ class App {
     private renderer: THREE.WebGLRenderer;
     private gl: WebGL2RenderingContext | WebGLRenderingContext;
 
-    private glBinding: XRWebGLBinding;
-    private viewerRefSpace: XRReferenceSpace;
+    private glBinding: XRWebGLBinding | undefined;
+    private viewerRefSpace: XRReferenceSpace | undefined;
     private baseLayer: XRWebGLLayer | undefined;
-    private xrSession: XRSession;
+    private xrSession: XRSession | undefined;
+
     private pointCloudGenerator: PointCloudGenerator;
+
+    private overlay: HTMLElement;
+    private gltfBtn: HTMLElement;
+
+    private exporter: GLTFExporter;
 
     constructor(){
         this.scene = new THREE.Scene();
@@ -25,31 +32,39 @@ class App {
         this.renderer.setClearColor(0xffffff, 0);
         this.renderer.setAnimationLoop(this.animate.bind(this));
 
-        console.log(this.renderer);
-
         this.gl = this.renderer.getContext();
-        this.pointCloudGenerator = new PointCloudGenerator(this.gl);
+        this.pointCloudGenerator = new PointCloudGenerator(this.gl, this.scene);
 
+        this.overlay = document.querySelector("#overlay") as HTMLElement;
+        this.gltfBtn = document.querySelector("#gltf") as HTMLElement;
+        this.gltfBtn.addEventListener('click', async (e)=>{ 
+            await this.exportPointCloud();
+        });
 
-        const btn = ARButton.createButton(this.renderer, {
-            requiredFeatures: ['unbounded', 'depth-sensing', 'camera-access'], 
+        this.exporter = new GLTFExporter();
+
+        const sessionOptions: XRSessionInit = {
+            requiredFeatures: ['unbounded', 'depth-sensing', 'camera-access', 'dom-overlay'], 
             depthSensing: {
                 dataFormatPreference: ['luminance-alpha'],
                 usagePreference: ['cpu-optimized']
+            },
+            domOverlay: {
+                root: this.overlay
             }
-        });
-        
-        btn.style.backgroundColor = 'black';
-        document.body.appendChild(btn);
+        };
+
+        const btn = Button.createButton(this, sessionOptions);
+        document.getElementById('btn-container')?.appendChild(btn);
     }
 
     public async exportPointCloud() {    
-        // Create exporter
-        const exporter = new GLTFExporter();
-        
+        const innerText = this.gltfBtn.innerText;
+        this.gltfBtn.innerText = "Please Wait...";
+        this.renderer.setAnimationLoop(null);
         try {
             const gltf = await new Promise((resolve, reject) => {
-                exporter.parse(
+                this.exporter.parse(
                     this.scene,
                     resolve,
                     reject,
@@ -61,6 +76,8 @@ class App {
         } catch (error) {
             console.error("Export failed:", error);
         }
+        this.gltfBtn.innerText = innerText;
+        this.renderer.setAnimationLoop(this.animate.bind(this));
     }
 
 
@@ -96,9 +113,6 @@ class App {
     
             if(!this.xrSession){
                 this.xrSession = this.renderer.xr.getSession() as XRSession;
-                this.xrSession.addEventListener('select', (e)=>{
-                    this.exportPointCloud();
-                });
             }
     
             const pose = frame.getViewerPose(this.viewerRefSpace);
@@ -111,30 +125,50 @@ class App {
                 const depthInfo = frame.getDepthInformation(view);
                 
                 if(depthInfo){
-                    const pointCloud = this.pointCloudGenerator.createPointCloudData(
+                    this.pointCloudGenerator.createPointCloudData(
                         depthInfo, view, this.baseLayer as XRWebGLLayer, 
                         webXRTexture, camera.width, camera.height
                     );
-                    this.addPointCloud(pointCloud);
                 }
             });
         }
         this.renderer.render(this.scene, this.camera);
     }
 
-    private addPointCloud(pointCloudData: {positions: Float32Array, colors: Float32Array}) {
-        const geometry = new THREE.BufferGeometry();
-        geometry.setAttribute('position', new THREE.BufferAttribute(pointCloudData.positions, 3));
-        geometry.setAttribute('color', new THREE.BufferAttribute(pointCloudData.colors, 3));
-    
-        const material = new THREE.PointsMaterial({
-            size: 0.01,
-            vertexColors: true, // Enable vertex coloring
-            sizeAttenuation: true
-        });
-    
-        const pointCloud = new THREE.Points(geometry, material);
-        this.scene.add(pointCloud);
+    public getScene(){
+        return this.scene;
+    }
+
+    public getRenderer(){
+        return this.renderer;
+    }
+
+    public getXRGLBinding(){
+        return this.glBinding;
+    }
+    public setXRGLBinding(glBinding: XRWebGLBinding | undefined){
+        this.glBinding = glBinding;
+    }
+
+    public getViewerRefSpace(){
+        return this.viewerRefSpace;
+    }
+    public setViewerRefSpace(viewerRefSpace: XRReferenceSpace | undefined){
+        this.viewerRefSpace = viewerRefSpace;
+    }
+
+    public getXRBaseWebGLLayer(){
+        return this.baseLayer;
+    }
+    public setXRBaseWebGLLayer(baseLayer: XRWebGLLayer | undefined){
+        this.baseLayer = baseLayer;
+    }
+
+    public getXRSession(){
+        return this.xrSession;
+    }
+    public setXRSession(xrSession: XRSession | undefined){
+        this.xrSession = xrSession;
     }
 }
 
