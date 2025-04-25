@@ -84,7 +84,7 @@ class PointCloudGenerator {
         geometry.setAttribute('color', new THREE.BufferAttribute(pointCloudData.colors, 3));
     
         const material = new THREE.PointsMaterial({
-            size: 0.01,
+            size: 0.005,
             vertexColors: true, // Enable vertex coloring
             sizeAttenuation: true
         });
