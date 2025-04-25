@@ -1,17 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>WebAR with Three.js</title>
-        <style>
-            body {
-                margin: 0;
-                overflow: hidden;
-            }
-        </style>
-    </head>
-    <body>
-        <script src="./src/index.ts" type="module"></script>
-    </body>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real Time 3D Point Cloud Reconstruction Using WebXR</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="overlay">
+        <div id="main-content">
+            This app allows you to create a 3D point cloud using WebXR Device API.
+        </div>
+        <div id="btn-container" class="not-session">
+            <button id="gltf"  class="btn btn-hidden gltf-button">Export GLTF</button>
+        </div>
+    </div>
+
+    <script src="./src/index.ts" type="module"></script>
+</body>
+
 </html>
