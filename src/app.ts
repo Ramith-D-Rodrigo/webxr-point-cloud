@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter';
 import PointCloudGenerator from './point_cloud';
 import { Button } from './button';
+import GLTFManager from './gltf_manager';
 
 class App {
     private scene: THREE.Scene;
@@ -21,7 +21,7 @@ class App {
     private toggleBtn: HTMLElement;
     private messageDiv: HTMLElement;
 
-    private exporter: GLTFExporter;
+    private gltfManager: GLTFManager;
 
     constructor(){
         this.scene = new THREE.Scene();
@@ -33,21 +33,25 @@ class App {
         this.renderer.setClearColor(0xffffff, 0);
         this.renderer.setAnimationLoop(this.animate.bind(this));
 
+        this.gltfManager = new GLTFManager();
+
         this.gl = this.renderer.getContext();
         this.pointCloudGenerator = new PointCloudGenerator(this.gl, this.scene);
 
         this.overlay = document.querySelector("#overlay") as HTMLElement;
         this.messageDiv = document.querySelector('#main-content') as HTMLElement;
         this.gltfBtn = document.querySelector("#gltf") as HTMLElement;
-        this.gltfBtn.addEventListener('click', async (e)=>{ 
-            await this.exportPointCloud();
-        });
         this.toggleBtn = document.querySelector("#cloudToggle") as HTMLElement;
+
+        this.gltfBtn.addEventListener('click', async (e)=>{ 
+            this.renderer.setAnimationLoop(null);
+            await this.gltfManager.exportPointCloud(this.gltfBtn, this.scene);
+            this.renderer.setAnimationLoop(this.animate.bind(this));
+        });
+
         this.toggleBtn.addEventListener('click', (e) => {
             this.pointCloudGenerator.togglePointClouds();
         });
-
-        this.exporter = new GLTFExporter();
 
         const sessionOptions: XRSessionInit = {
             requiredFeatures: ['unbounded', 'depth-sensing', 'camera-access', 'dom-overlay'], 
@@ -62,49 +66,6 @@ class App {
 
         const btn = Button.createButton(this, sessionOptions, this.gltfBtn, this.messageDiv, this.toggleBtn);
         document.getElementById('btn-container')?.appendChild(btn);
-    }
-
-    public async exportPointCloud() {    
-        const innerText = this.gltfBtn.innerText;
-        this.gltfBtn.innerText = "Please Wait...";
-        this.renderer.setAnimationLoop(null);
-        try {
-            const gltf = await new Promise((resolve, reject) => {
-                this.exporter.parse(
-                    this.scene,
-                    resolve,
-                    reject,
-                    { binary: false, trs: false } // Export as JSON, not binary
-                );
-            });
-            
-            this.downloadGLTF(gltf as unknown as object);
-        } catch (error) {
-            console.error("Export failed:", error);
-        }
-        this.gltfBtn.innerText = innerText;
-        this.renderer.setAnimationLoop(this.animate.bind(this));
-    }
-
-
-    private downloadGLTF(gltf: object){
-        const data = JSON.stringify(gltf, null, 2);
-        
-        // Create download link
-        const blob = new Blob([data], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `pointcloud_${new Date().toISOString()}.gltf`;
-        document.body.appendChild(link);
-        link.click();
-        
-        // Clean up
-        setTimeout(() => {
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-        }, 1000);
     }
 
     private async animate(timestamp: DOMHighResTimeStamp, frame: XRFrame) {
