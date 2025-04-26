@@ -2,14 +2,12 @@ import * as THREE from 'three';
 import App from './app';
 
 class Button {
-    static createButton(app: App, sessionInit: XRSessionInit) {
+    static createButton(app: App, sessionInit: XRSessionInit, gltfBtn: HTMLElement, messageDiv: HTMLElement, toggleBtn: HTMLElement) {
         const button = document.createElement('button');
 
         const scene = app.getScene();
         const renderer = app.getRenderer();
         const container = document.querySelector("#btn-container") as HTMLElement;
-        const gltfBtn = document.querySelector("#gltf") as HTMLElement;
-        const messageDiv = document.querySelector("#main-content") as HTMLElement;
 
         function showStartAR( /*device*/ ) {
             let currentSession: XRSession | null = null;
@@ -21,7 +19,6 @@ class Button {
                 app.setXRGLBinding(undefined);
                 app.setXRSession(undefined);
 
-                scene.clear();
                 session.addEventListener('end', onSessionEnded);
                 renderer.xr.setReferenceSpaceType('unbounded');
                 await renderer.xr.setSession(session);
@@ -30,17 +27,22 @@ class Button {
                 container.classList.remove('not-session');
                 container.classList.add('in-session');
                 gltfBtn.classList.remove('hidden');
+                toggleBtn.classList.remove('hidden');
                 messageDiv.classList.add('hidden');
             }
 
             function onSessionEnded( /*event*/ ) {
                 scene.clear();
+                app.clearPointClouds();
+                app.setPointCloudToggle(true);
+
                 currentSession?.removeEventListener( 'end', onSessionEnded);
                 button.textContent = 'START AR';
                 currentSession = null;
                 container.classList.remove('in-session');
                 container.classList.add('not-session');
                 gltfBtn.classList.add('hidden');
+                toggleBtn.classList.add('hidden');
                 messageDiv.classList.remove('hidden');
             }
 

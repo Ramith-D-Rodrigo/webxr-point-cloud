@@ -13,6 +13,8 @@ class PointCloudGenerator {
     private workerManager: WorkerManager;
 
     private scene: THREE.Scene;
+    private generatedPointClouds: THREE.Points[] = [];
+    private pointCloudsEnabled: boolean = true;
 
     constructor(gl: WebGL2RenderingContext | WebGLRenderingContext, scene: THREE.Scene) {
         this.gl = gl;
@@ -90,7 +92,24 @@ class PointCloudGenerator {
         });
     
         const pointCloud = new THREE.Points(geometry, material);
+        pointCloud.visible = this.pointCloudsEnabled;
+        this.generatedPointClouds.push(pointCloud);
         this.scene.add(pointCloud);
+    }
+
+    public togglePointClouds(){
+        this.pointCloudsEnabled = !this.pointCloudsEnabled;
+        this.generatedPointClouds.forEach(pc => {
+            pc.visible = this.pointCloudsEnabled;
+        });
+    }
+
+    public clear(){
+        this.generatedPointClouds = [];
+    }
+
+    public setToggle(val: boolean){
+        this.pointCloudsEnabled = val;
     }
 };
 

@@ -38,6 +38,13 @@ body {
     background-color: #0d2a69;
 }
 
+.toggle-button {
+    background-color: #c020ab;
+}
+.toggle-button:hover {
+    background-color: #8d1178;
+}
+
 /* Hidden button */
 .hidden {
     display: none;
@@ -54,7 +61,7 @@ body {
 /* Overlay */
 #overlay {
     position: absolute;
-    top: 1rem;
+    top: 15rem;
     background-color: rgba(0, 0, 0, 0.85);
     padding: 1.5rem;
     border-radius: 12px;

@@ -19,6 +19,8 @@ class App {
 
     private overlay: HTMLElement;
     private gltfBtn: HTMLElement;
+    private toggleBtn: HTMLElement;
+    private messageDiv: HTMLElement;
 
     private exporter: GLTFExporter;
 
@@ -36,9 +38,14 @@ class App {
         this.pointCloudGenerator = new PointCloudGenerator(this.gl, this.scene);
 
         this.overlay = document.querySelector("#overlay") as HTMLElement;
+        this.messageDiv = document.querySelector('#main-content') as HTMLElement;
         this.gltfBtn = document.querySelector("#gltf") as HTMLElement;
         this.gltfBtn.addEventListener('click', async (e)=>{ 
             await this.exportPointCloud();
+        });
+        this.toggleBtn = document.querySelector("#cloudToggle") as HTMLElement;
+        this.toggleBtn.addEventListener('click', (e) => {
+            this.pointCloudGenerator.togglePointClouds();
         });
 
         this.exporter = new GLTFExporter();
@@ -54,7 +61,7 @@ class App {
             }
         };
 
-        const btn = Button.createButton(this, sessionOptions);
+        const btn = Button.createButton(this, sessionOptions, this.gltfBtn, this.messageDiv, this.toggleBtn);
         document.getElementById('btn-container')?.appendChild(btn);
     }
 
@@ -169,6 +176,14 @@ class App {
     }
     public setXRSession(xrSession: XRSession | undefined){
         this.xrSession = xrSession;
+    }
+
+    public clearPointClouds(){
+        this.pointCloudGenerator.clear();
+    }
+
+    public setPointCloudToggle(val: boolean){
+        this.pointCloudGenerator.setToggle(val);
     }
 }
 
