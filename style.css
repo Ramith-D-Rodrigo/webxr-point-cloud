@@ -45,6 +45,13 @@ body {
     background-color: #8d1178;
 }
 
+.capture-button {
+    background-color: #da721c;
+}
+.toggle-button:hover {
+    background-color: #b45a05;
+}
+
 /* Hidden button */
 .hidden {
     display: none;
@@ -56,6 +63,7 @@ body {
     flex-direction: row;
     align-items: center;
     justify-content: center;
+    flex-wrap: wrap;
 }
 
 /* Overlay */
@@ -66,7 +74,6 @@ body {
     padding: 1.5rem;
     border-radius: 12px;
     box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
-    width: 100%;
     text-align: center;
 }
 

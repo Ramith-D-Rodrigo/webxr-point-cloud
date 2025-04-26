@@ -20,10 +20,12 @@ class App {
     private gltfBtn: HTMLElement;
     private toggleBtn: HTMLElement;
     private messageDiv: HTMLElement;
+    private captureBtn: HTMLElement;
 
     private gltfManager: GLTFManager;
+    private capture: boolean = false;
 
-    constructor(){
+    constructor(useWorkers: boolean){
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance'});
@@ -36,12 +38,13 @@ class App {
         this.gltfManager = new GLTFManager();
 
         this.gl = this.renderer.getContext();
-        this.pointCloudGenerator = new PointCloudGenerator(this.gl, this.scene);
+        this.pointCloudGenerator = new PointCloudGenerator(this.gl, this.scene, useWorkers);
 
         this.overlay = document.querySelector("#overlay") as HTMLElement;
         this.messageDiv = document.querySelector('#main-content') as HTMLElement;
         this.gltfBtn = document.querySelector("#gltf") as HTMLElement;
         this.toggleBtn = document.querySelector("#cloudToggle") as HTMLElement;
+        this.captureBtn = document.querySelector('#capture') as HTMLElement;
 
         this.gltfBtn.addEventListener('click', async (e)=>{ 
             this.renderer.setAnimationLoop(null);
@@ -52,6 +55,16 @@ class App {
         this.toggleBtn.addEventListener('click', (e) => {
             this.pointCloudGenerator.togglePointClouds();
         });
+
+        this.captureBtn.addEventListener('click', (e)=>{
+            this.capture = !this.capture;
+            if(this.capture){
+                this.captureBtn.innerHTML = "Stop Capturing";
+            }
+            else{
+                this.captureBtn.innerHTML = "Start Capturing";
+            }
+        })
 
         const sessionOptions: XRSessionInit = {
             requiredFeatures: ['unbounded', 'depth-sensing', 'camera-access', 'dom-overlay'], 
@@ -64,7 +77,7 @@ class App {
             }
         };
 
-        const btn = Button.createButton(this, sessionOptions, this.gltfBtn, this.messageDiv, this.toggleBtn);
+        const btn = Button.createButton(this, sessionOptions, this.gltfBtn, this.messageDiv, this.toggleBtn, this.captureBtn);
         document.getElementById('btn-container')?.appendChild(btn);
     }
 
@@ -91,7 +104,7 @@ class App {
                 const webXRTexture: WebGLTexture = (this.glBinding as unknown as any).getCameraImage(camera);
                 const depthInfo = frame.getDepthInformation(view);
                 
-                if(depthInfo){
+                if(depthInfo && this.capture){
                     this.pointCloudGenerator.createPointCloudData(
                         depthInfo, view, this.baseLayer as XRWebGLLayer, 
                         webXRTexture, camera.width, camera.height

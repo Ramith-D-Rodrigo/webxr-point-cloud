@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import App from './app';
 
 class Button {
-    static createButton(app: App, sessionInit: XRSessionInit, gltfBtn: HTMLElement, messageDiv: HTMLElement, toggleBtn: HTMLElement) {
+    static createButton(app: App, sessionInit: XRSessionInit, gltfBtn: HTMLElement, messageDiv: HTMLElement, toggleBtn: HTMLElement, captureBtn: HTMLElement) {
         const button = document.createElement('button');
 
         const scene = app.getScene();
@@ -29,6 +29,7 @@ class Button {
                 gltfBtn.classList.remove('hidden');
                 toggleBtn.classList.remove('hidden');
                 messageDiv.classList.add('hidden');
+                captureBtn.classList.remove('hidden');
             }
 
             function onSessionEnded( /*event*/ ) {
@@ -44,6 +45,7 @@ class Button {
                 gltfBtn.classList.add('hidden');
                 toggleBtn.classList.add('hidden');
                 messageDiv.classList.remove('hidden');
+                captureBtn.classList.add('hidden');
             }
 
             button.style.cursor = 'pointer';
