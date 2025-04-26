@@ -10,7 +10,7 @@ self.addEventListener('message', (ev: MessageEvent<WorkerConfig>) => {
 
     const projMatrix = new THREE.Matrix4().fromArray(cfg.projectionMatrix);
     const invProjMatrix = new THREE.Matrix4().copy(projMatrix).invert();
-    const viewMatrix = new THREE.Matrix4().fromArray(cfg.viewMatrix);
+    const viewMatrixInv = new THREE.Matrix4().fromArray(cfg.viewMatrixInv);
 
     for (let y = cfg.yStart; y < cfg.height; y += cfg.yInc) {
         for (let x = cfg.xStart; x < cfg.width; x += cfg.xInc) {
@@ -42,7 +42,7 @@ self.addEventListener('message', (ev: MessageEvent<WorkerConfig>) => {
             );
 
             // World space
-            const worldPos = eyePos.applyMatrix4(viewMatrix);    
+            const worldPos = eyePos.applyMatrix4(viewMatrixInv);    
             positions.push(worldPos.x, worldPos.y, worldPos.z);
             colors.push(r, g, b);
         }
@@ -68,7 +68,7 @@ function getDepthInMeters(u: number, v: number, cfg: WorkerConfig): number {
     const row = Math.min(cfg.height - 1, Math.max(0, Math.trunc(fy)));
 
     const index = row * cfg.width + col;
-    const byteIndex = index * 2;
+    const byteIndex = index * 2;    // Because we are using luminance-alpha that has 2 bytes
 
     const luminance = cfg.depthBuffer[byteIndex];
     const alpha = cfg.depthBuffer[byteIndex + 1];

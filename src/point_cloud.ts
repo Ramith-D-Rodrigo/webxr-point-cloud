@@ -51,7 +51,7 @@ class PointCloudGenerator {
             cameraHeight,
             pixels, // from readPixels
             projectionMatrix: view.projectionMatrix,
-            viewMatrix: view.transform.matrix,
+            viewMatrixInv: view.transform.matrix, //This is the inverse of viewMatrix
             xStart: this.xStart,
             yStart: this.yStart,
             xInc: this.xInc,
@@ -123,7 +123,7 @@ interface WorkerConfig {
     cameraHeight: number;
     pixels: Uint8Array;
     projectionMatrix: Float32Array;
-    viewMatrix: Float32Array;
+    viewMatrixInv: Float32Array;
     xStart: number;
     yStart: number;
     xInc: number;
