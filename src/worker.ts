@@ -7,7 +7,6 @@ self.addEventListener('message', (ev: MessageEvent<WorkerConfig>) => {
     const positions: number[] = [];
     const colors: number[] = [];
 
-
     const projMatrix = new THREE.Matrix4().fromArray(cfg.projectionMatrix);
     const invProjMatrix = new THREE.Matrix4().copy(projMatrix).invert();
     const viewMatrixInv = new THREE.Matrix4().fromArray(cfg.viewMatrixInv);
