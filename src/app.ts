@@ -84,11 +84,11 @@ class App {
     
             const pose = frame.getViewerPose(this.viewerRefSpace);
             pose?.views.forEach(view => {
-                let camera = view.camera;
+                let camera = (view as unknown as any).camera;
                 if(!this.glBinding){
-                    this.glBinding = new XRWebGLBinding(this.xrSession, this.renderer.getContext());
+                    this.glBinding = new XRWebGLBinding(this.xrSession as XRSession, this.renderer.getContext());
                 }
-                const webXRTexture: WebGLTexture = this.glBinding.getCameraImage(camera);
+                const webXRTexture: WebGLTexture = (this.glBinding as unknown as any).getCameraImage(camera);
                 const depthInfo = frame.getDepthInformation(view);
                 
                 if(depthInfo){

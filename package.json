@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "vite"
+    "dev": "vite",
+    "test": "vitest",
+    "build": "tsc && vite build"
   },
   "keywords": [],
   "author": "",
@@ -22,9 +24,13 @@
     "three": "^0.175.0"
   },
   "devDependencies": {
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.6.3",
     "@types/three": "^0.175.0",
+    "jsdom": "^26.1.0",
     "typescript": "^5.8.3",
-    "vite": "^6.2.6"
+    "vite": "^6.2.6",
+    "vitest": "^3.1.2"
   },
   "description": ""
 }
