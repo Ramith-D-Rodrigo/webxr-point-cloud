@@ -7,22 +7,26 @@ class PointCloudGenerator {
 
     private yStart: number = 0;
     private xStart: number = 0;
-    private yInc: number = 5;
-    private xInc: number = 5;
+    private yInc: number = 2;
+    private xInc: number = 2;
 
-    private workerManager: WorkerManager;
+    private useWorkers: boolean;
+    private workerManager: WorkerManager | undefined;
 
     private scene: THREE.Scene;
     private generatedPointClouds: THREE.Points[] = [];
     private pointCloudsEnabled: boolean = true;
 
-    constructor(gl: WebGL2RenderingContext | WebGLRenderingContext, scene: THREE.Scene) {
+    constructor(gl: WebGL2RenderingContext | WebGLRenderingContext, scene: THREE.Scene, useWorkers: boolean) {
         this.gl = gl;
         this.tempFramebuffer = this.gl.createFramebuffer();
 
         this.scene = scene;
+        this.useWorkers = useWorkers;
 
-        this.workerManager = new WorkerManager();
+        if(this.useWorkers){
+            this.workerManager = new WorkerManager();
+        }
     }
 
     public createPointCloudData(depthInfo: XRCPUDepthInformation, view: XRView, baseLayer: XRWebGLLayer,
@@ -41,6 +45,67 @@ class PointCloudGenerator {
         // Clean up
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, baseLayer?.framebuffer as WebGLFramebuffer);
 
+        if(!this.useWorkers){
+            const positions: number[] = [];
+            const colors: number[] = [];
+
+            const projMatrix = new THREE.Matrix4().fromArray(view.projectionMatrix);
+            const invProjMatrix = new THREE.Matrix4().copy(projMatrix).invert();
+            const viewMatrixInv = new THREE.Matrix4().fromArray(view.transform.matrix);
+
+            const height = depthInfo.height;
+            const width = depthInfo.width;
+            for (let y = this.yStart; y < height; y += this.yInc) {
+                for (let x = this.xStart; x < width; x += this.xInc) {
+                    const u = x / width;
+                    const v = y / height;
+
+                    const depth = depthInfo.getDepthInMeters(u, v);
+                    if (!depth || isNaN(depth)) continue;
+
+                    const camX = Math.floor(u * cameraWidth);
+                    const camY = Math.floor(v * cameraHeight);
+                    const pixelIndex = (camY * cameraWidth + camX) * 4;
+
+                    const r = pixels[pixelIndex] / 255;
+                    const g = pixels[pixelIndex + 1] / 255;
+                    const b = pixels[pixelIndex + 2] / 255;
+
+                    const ndcX = (x / width) * 2 - 1;
+                    const ndcY = (y / height) * 2 - 1;
+
+                    const clipCoord = new THREE.Vector4(ndcX, ndcY, -1, 1);
+
+                    // eye / camera space
+                    const eyeCoord = clipCoord.applyMatrix4(invProjMatrix);
+
+                    const eyePos = new THREE.Vector3(
+                        eyeCoord.x * depth,
+                        eyeCoord.y * depth,
+                        -depth
+                    );
+
+                    // World space
+                    const worldPos = eyePos.applyMatrix4(viewMatrixInv);  
+                    positions.push(worldPos.x, worldPos.y, worldPos.z);
+                    colors.push(r, g, b);
+                }
+            }
+
+            this.addPointCloud({
+                positions: new Float32Array(positions),
+                colors: new Float32Array(colors)
+            });
+        }
+        else{
+            this.createUsingWorkers(depthInfo, cameraWidth, cameraHeight, pixels, view);
+        }
+
+        this.xStart = (this.xStart + Math.floor(Math.random() * this.xInc)) % (this.xInc + 1);
+        this.yStart = (this.yStart + Math.floor(Math.random() * this.yInc)) % (this.yInc + 1);
+    }
+
+    private createUsingWorkers(depthInfo: XRCPUDepthInformation, cameraWidth: number, cameraHeight: number, pixels: Uint8Array, view: XRView){
         const cfg: WorkerConfig = {
             depthBuffer: new Uint8Array(depthInfo.data),
             width: depthInfo.width,
@@ -58,7 +123,7 @@ class PointCloudGenerator {
             yInc: this.yInc,
         };
         
-        const wrapper = this.workerManager.getIdleWorker();
+        const wrapper = this.workerManager?.getIdleWorker();
         if(wrapper){
             wrapper.busy = true;
             const { worker } = wrapper;
@@ -75,9 +140,6 @@ class PointCloudGenerator {
         }else{
             console.warn('All workers are busy. Consider queuing this task.');
         }
-
-        this.xStart = (this.xStart + Math.floor(Math.random() * this.xInc)) % (this.xInc + 1);
-        this.yStart = (this.yStart + Math.floor(Math.random() * this.yInc)) % (this.yInc + 1);
     }
 
     private addPointCloud(pointCloudData: {positions: Float32Array, colors: Float32Array}) {
