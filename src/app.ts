@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import {ARButton} from 'three/examples/jsm/webxr/ARButton';
 import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter';
 import PointCloudGenerator from './point_cloud';
 import { Button } from './button';
