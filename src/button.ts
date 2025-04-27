@@ -36,6 +36,7 @@ class Button {
                 scene.clear();
                 app.clearPointClouds();
                 app.setPointCloudToggle(true);
+                app.setCapture(false);
 
                 currentSession?.removeEventListener( 'end', onSessionEnded);
                 button.textContent = 'START AR';

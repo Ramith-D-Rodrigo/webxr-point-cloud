@@ -158,6 +158,10 @@ class App {
     public setPointCloudToggle(val: boolean){
         this.pointCloudGenerator.setToggle(val);
     }
+
+    public setCapture(val: boolean){
+        this.capture = val;
+    }
 }
 
 export default App;
