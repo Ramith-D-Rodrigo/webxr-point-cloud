@@ -4,8 +4,8 @@ This project demonstrates how to use WebXR to capture and reconstruct 3D point c
 
 ## Demo
 
-[Recording](https://raw.githubusercontent.com/Ramith-D-Rodrigo/webxr-point-cloud/master/videos/Demo.mp4)
-[Visualization](https://raw.githubusercontent.com/Ramith-D-Rodrigo/webxr-point-cloud/master/videos/Point_Cloud_Visualization.mp4)
+[![Watch the video]](https://raw.githubusercontent.com/Ramith-D-Rodrigo/webxr-point-cloud/master/videos/Demo.mp4)
+[![Watch the video]](https://raw.githubusercontent.com/Ramith-D-Rodrigo/webxr-point-cloud/master/videos/Point_Cloud_Visualization.mp4)
 
 ## Used Technologies
 
