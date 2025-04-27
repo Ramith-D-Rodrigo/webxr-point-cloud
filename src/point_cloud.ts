@@ -7,8 +7,8 @@ class PointCloudGenerator {
 
     private yStart: number = 0;
     private xStart: number = 0;
-    private yInc: number = 2;
-    private xInc: number = 2;
+    private yInc: number = 10;
+    private xInc: number = 10;
 
     private useWorkers: boolean;
     private workerManager: WorkerManager | undefined;
@@ -74,7 +74,7 @@ class PointCloudGenerator {
                     const ndcX = (x / width) * 2 - 1;
                     const ndcY = (y / height) * 2 - 1;
 
-                    const clipCoord = new THREE.Vector4(ndcX, ndcY, -1, 1);
+                    const clipCoord = new THREE.Vector4(ndcX, ndcY, 0, 1);
 
                     // eye / camera space
                     const eyeCoord = clipCoord.applyMatrix4(invProjMatrix);

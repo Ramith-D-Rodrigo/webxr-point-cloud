@@ -30,7 +30,7 @@ self.addEventListener('message', (ev: MessageEvent<WorkerConfig>) => {
             const ndcX = (x / cfg.width) * 2 - 1;
             const ndcY = (y / cfg.height) * 2 - 1;
     
-            const clipCoord = new THREE.Vector4(ndcX, ndcY, -1, 1);
+            const clipCoord = new THREE.Vector4(ndcX, ndcY, 0, 1);
 
             // eye / camera space
             const eyeCoord = clipCoord.applyMatrix4(invProjMatrix);
