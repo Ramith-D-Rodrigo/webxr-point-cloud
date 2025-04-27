@@ -2,6 +2,11 @@
 
 This project demonstrates how to use WebXR to capture and reconstruct 3D point clouds in real-time using a mobile device's camera.
 
+## Demo
+
+[Recording](https://raw.githubusercontent.com/Ramith-D-Rodrigo/webxr-point-cloud/master/videos/Demo.mp4)
+[Visualization](https://raw.githubusercontent.com/Ramith-D-Rodrigo/webxr-point-cloud/master/videos/Point_Cloud_Visualization.mp4)
+
 ## Used Technologies
 
 - Three.js: A JavaScript library for creating 3D graphics in the browser.
