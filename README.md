@@ -63,7 +63,7 @@ Since the API provides Projection and View matrices, it is trivial. However, dep
 ndcX = (x / width) * 2 - 1 // x is the pixel coordinate in the depth map
 ndcY = (y / height) * 2 - 1 // y is the pixel coordinate in the depth map
 
-ClipCoord = (ndcX, ndcY, -1, 1) // NDC coordinates
+ClipCoord = (ndcX, ndcY, 0, 1) // NDC coordinates
 
 viewSpaceCoord = inverse(Projection) * ClipCoord // Transform to view space
 
