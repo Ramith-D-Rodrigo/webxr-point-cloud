@@ -47,6 +47,7 @@ class Button {
                 toggleBtn.classList.add('hidden');
                 messageDiv.classList.remove('hidden');
                 captureBtn.classList.add('hidden');
+                captureBtn.innerHTML = "Stop Capturing";
             }
 
             button.style.cursor = 'pointer';
